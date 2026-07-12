@@ -103,9 +103,6 @@ jobs:
               else:
                   updated.append(line)
 
-          for key, value in [('title', 'Cosmic Shard'), ('package.name', 'cosmicshard'), ('package.domain', 'com.neiro'), ('source.include_exts', 'py,png,jpg,json'), ('requirements', 'python3,pygame'), ('fullscreen', '1'), ('orientation', 'portrait'), ('android.api', '31'), ('android.minapi', '21'), ('android.build_tools', '34.0.3'), ('android.arch', 'arm64-v8a'), ('android.archs', 'arm64-v8a'), ('android.allow_python2', '0'), ('android.sdk_path', os.environ.get('ANDROID_SDK_ROOT', os.path.expanduser('~/android-sdk')))].items():
-              pass
-
           p.write_text('\n'.join(updated) + '\n')
           PY
 
