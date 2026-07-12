@@ -46,8 +46,18 @@ jobs:
           sed -i 's/^android.arch = .*/android.arch = armeabi-v7a/' buildozer.spec
           sed -i 's/^# android.allow_python2 = .*/android.allow_python2 = 0/' buildozer.spec
 
+      - name: Accept Android SDK licenses
+        run: |
+          export ANDROID_SDK_ROOT="$HOME/.buildozer/android/platform/android-sdk"
+          if [ -x "$ANDROID_SDK_ROOT/tools/bin/sdkmanager" ]; then
+            yes | "$ANDROID_SDK_ROOT/tools/bin/sdkmanager" --licenses
+          else
+            echo "sdkmanager not present yet; continuing"
+          fi
+
       - name: Build APK
         run: |
+          export ANDROID_SDK_ROOT="$HOME/.buildozer/android/platform/android-sdk"
           buildozer android debug
 
       - name: Upload APK
