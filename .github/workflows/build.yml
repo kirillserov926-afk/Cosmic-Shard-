@@ -45,39 +45,68 @@ jobs:
           python - <<'PY'
           from pathlib import Path
           import os
-          import re
 
           p = Path('buildozer.spec')
+          if not p.exists():
+              raise SystemExit('buildozer.spec was not generated')
+
           text = p.read_text()
+          replacements = [
+              ('title =', 'title = Cosmic Shard'),
+              ('package.name =', 'package.name = cosmicshard'),
+              ('package.domain =', 'package.domain = com.neiro'),
+              ('source.include_exts =', 'source.include_exts = py,png,jpg,json'),
+              ('requirements =', 'requirements = python3,pygame'),
+              ('fullscreen =', 'fullscreen = 1'),
+              ('orientation =', 'orientation = portrait'),
+              ('android.api =', 'android.api = 31'),
+              ('android.minapi =', 'android.minapi = 21'),
+              ('android.build_tools =', 'android.build_tools = 34.0.3'),
+              ('android.arch =', 'android.arch = arm64-v8a'),
+              ('android.archs =', 'android.archs = arm64-v8a'),
+              ('android.allow_python2 =', 'android.allow_python2 = 0'),
+              ('android.sdk_path =', f"android.sdk_path = {os.environ.get('ANDROID_SDK_ROOT', os.path.expanduser('~/android-sdk'))}"),
+          ]
 
-          def set_value(key, value):
-              nonlocal text
-              pattern = re.compile(rf'^{re.escape(key)}\s*=\s*.*$', re.M)
-              if pattern.search(text):
-                  text = pattern.sub(f'{key} = {value}', text, count=1)
+          lines = text.splitlines()
+          updated = []
+          for line in lines:
+              stripped = line.strip()
+              if stripped.startswith('title ='):
+                  updated.append('title = Cosmic Shard')
+              elif stripped.startswith('package.name ='):
+                  updated.append('package.name = cosmicshard')
+              elif stripped.startswith('package.domain ='):
+                  updated.append('package.domain = com.neiro')
+              elif stripped.startswith('source.include_exts ='):
+                  updated.append('source.include_exts = py,png,jpg,json')
+              elif stripped.startswith('requirements ='):
+                  updated.append('requirements = python3,pygame')
+              elif stripped.startswith('fullscreen ='):
+                  updated.append('fullscreen = 1')
+              elif stripped.startswith('orientation ='):
+                  updated.append('orientation = portrait')
+              elif stripped.startswith('android.api ='):
+                  updated.append('android.api = 31')
+              elif stripped.startswith('android.minapi ='):
+                  updated.append('android.minapi = 21')
+              elif stripped.startswith('android.build_tools ='):
+                  updated.append('android.build_tools = 34.0.3')
+              elif stripped.startswith('android.arch ='):
+                  updated.append('android.arch = arm64-v8a')
+              elif stripped.startswith('android.archs ='):
+                  updated.append('android.archs = arm64-v8a')
+              elif stripped.startswith('android.allow_python2 ='):
+                  updated.append('android.allow_python2 = 0')
+              elif stripped.startswith('android.sdk_path ='):
+                  updated.append(f"android.sdk_path = {os.environ.get('ANDROID_SDK_ROOT', os.path.expanduser('~/android-sdk'))}")
               else:
-                  text += f'\n{key} = {value}\n'
+                  updated.append(line)
 
-          values = {
-              'title': 'Cosmic Shard',
-              'package.name': 'cosmicshard',
-              'package.domain': 'com.neiro',
-              'source.include_exts': 'py,png,jpg,json',
-              'requirements': 'python3,pygame',
-              'fullscreen': '1',
-              'orientation': 'portrait',
-              'android.api': '31',
-              'android.minapi': '21',
-              'android.build_tools': '34.0.3',
-              'android.arch': 'arm64-v8a',
-              'android.archs': 'arm64-v8a',
-              'android.allow_python2': '0',
-              'android.sdk_path': os.environ.get('ANDROID_SDK_ROOT', os.path.expanduser('~/android-sdk')),
-          }
-          for key, value in values.items():
-              set_value(key, value)
+          for key, value in [('title', 'Cosmic Shard'), ('package.name', 'cosmicshard'), ('package.domain', 'com.neiro'), ('source.include_exts', 'py,png,jpg,json'), ('requirements', 'python3,pygame'), ('fullscreen', '1'), ('orientation', 'portrait'), ('android.api', '31'), ('android.minapi', '21'), ('android.build_tools', '34.0.3'), ('android.arch', 'arm64-v8a'), ('android.archs', 'arm64-v8a'), ('android.allow_python2', '0'), ('android.sdk_path', os.environ.get('ANDROID_SDK_ROOT', os.path.expanduser('~/android-sdk')))].items():
+              pass
 
-          p.write_text(text)
+          p.write_text('\n'.join(updated) + '\n')
           PY
 
       - name: Set up Android SDK
