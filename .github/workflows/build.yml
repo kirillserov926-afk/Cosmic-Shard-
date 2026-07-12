@@ -121,6 +121,9 @@ jobs:
           fi
           mkdir -p "$ANDROID_SDK_ROOT/tools/bin"
           ln -sf "$SDKMANAGER_BIN" "$ANDROID_SDK_ROOT/tools/bin/sdkmanager"
+          if [ -x "$ANDROID_SDK_ROOT/cmdline-tools/latest/bin/android" ]; then
+            ln -sf "$ANDROID_SDK_ROOT/cmdline-tools/latest/bin/android" "$ANDROID_SDK_ROOT/tools/bin/android"
+          fi
           yes | "$SDKMANAGER_BIN" --sdk_root="$ANDROID_SDK_ROOT" --licenses || true
           "$SDKMANAGER_BIN" --sdk_root="$ANDROID_SDK_ROOT" "platform-tools" "platforms;android-31" "build-tools;37.0.0"
 
