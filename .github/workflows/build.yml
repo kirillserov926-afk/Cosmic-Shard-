@@ -91,7 +91,7 @@ jobs:
               elif stripped.startswith('android.minapi ='):
                   updated.append('android.minapi = 21')
               elif stripped.startswith('android.build_tools ='):
-                  updated.append('android.build_tools = 34.0.3')
+                  updated.append('android.build_tools = 37.0.0')
               elif stripped.startswith('android.arch ='):
                   updated.append('android.arch = arm64-v8a')
               elif stripped.startswith('android.archs ='):
@@ -120,9 +120,19 @@ jobs:
             SDKMANAGER_BIN="/usr/local/lib/android/sdk/cmdline-tools/latest/bin/sdkmanager"
           fi
           mkdir -p "$ANDROID_SDK_ROOT/tools/bin"
-          ln -sf "$SDKMANAGER_BIN" "$ANDROID_SDK_ROOT/tools/bin/sdkmanager"
+          if [ -x "$SDKMANAGER_BIN" ]; then
+            ln -sf "$SDKMANAGER_BIN" "$ANDROID_SDK_ROOT/tools/bin/sdkmanager"
+          fi
           if [ -x "$ANDROID_SDK_ROOT/cmdline-tools/latest/bin/android" ]; then
             ln -sf "$ANDROID_SDK_ROOT/cmdline-tools/latest/bin/android" "$ANDROID_SDK_ROOT/tools/bin/android"
+          fi
+          if [ -x "$ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager" ]; then
+            ln -sf "$ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager" "$ANDROID_SDK_ROOT/tools/bin/sdkmanager"
+          fi
+          if [ -x "$ANDROID_SDK_ROOT/tools/bin/android" ] && [ -x "$ANDROID_SDK_ROOT/tools/bin/sdkmanager" ]; then
+            echo "SDK tools are linked"
+          else
+            echo "Expected SDK tools were not found; current paths:" && ls -R "$ANDROID_SDK_ROOT" | head -200
           fi
           yes | "$SDKMANAGER_BIN" --sdk_root="$ANDROID_SDK_ROOT" --licenses || true
           "$SDKMANAGER_BIN" --sdk_root="$ANDROID_SDK_ROOT" "platform-tools" "platforms;android-31" "build-tools;37.0.0"
