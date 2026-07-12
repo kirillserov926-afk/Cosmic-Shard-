@@ -52,11 +52,16 @@ jobs:
       - name: Accept Android SDK licenses
         run: |
           export ANDROID_SDK_ROOT="$HOME/.buildozer/android/platform/android-sdk"
+          export ANDROID_HOME="$ANDROID_SDK_ROOT"
           if [ -x "$ANDROID_SDK_ROOT/tools/bin/sdkmanager" ]; then
-            yes | "$ANDROID_SDK_ROOT/tools/bin/sdkmanager" --licenses || true
-            yes | "$ANDROID_SDK_ROOT/tools/bin/sdkmanager" "platform-tools" "platforms;android-31" "build-tools;34.0.3" || true
+            echo y | "$ANDROID_SDK_ROOT/tools/bin/sdkmanager" --licenses || true
+            echo y | "$ANDROID_SDK_ROOT/tools/bin/sdkmanager" "platform-tools" "platforms;android-31" "build-tools;34.0.3" || true
           else
             echo "sdkmanager not present yet; continuing"
+          fi
+          if [ -x "$ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager" ]; then
+            echo y | "$ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager" --licenses || true
+            echo y | "$ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager" "platform-tools" "platforms;android-31" "build-tools;34.0.3" || true
           fi
 
       - name: Build APK
