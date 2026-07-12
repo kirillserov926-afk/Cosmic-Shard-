@@ -51,6 +51,7 @@ jobs:
           text = p.read_text()
 
           def set_value(key, value):
+              nonlocal text
               pattern = re.compile(rf'^{re.escape(key)}\s*=\s*.*$', re.M)
               if pattern.search(text):
                   text = pattern.sub(f'{key} = {value}', text, count=1)
