@@ -42,7 +42,7 @@ jobs:
 
       - name: Configure Buildozer
         run: |
-          export ANDROID_SDK_ROOT="${ANDROID_SDK_ROOT:-/usr/local/lib/android/sdk}"
+          export ANDROID_SDK_ROOT="$HOME/.buildozer/android/platform/android-sdk"
           export ANDROID_HOME="$ANDROID_SDK_ROOT"
           python - <<'PY'
           from pathlib import Path
@@ -101,7 +101,7 @@ jobs:
               elif stripped.startswith('android.allow_python2 ='):
                   updated.append('android.allow_python2 = 0')
               elif stripped.startswith('android.sdk_path ='):
-                  updated.append(f"android.sdk_path = {os.environ.get('ANDROID_SDK_ROOT', '/usr/local/lib/android/sdk')}")
+                  updated.append(f"android.sdk_path = {os.environ.get('ANDROID_SDK_ROOT', os.path.expanduser('~/.buildozer/android/platform/android-sdk'))}")
               else:
                   updated.append(line)
 
@@ -113,50 +113,30 @@ jobs:
 
       - name: Install Android SDK packages
         run: |
-          export ANDROID_SDK_ROOT="${ANDROID_SDK_ROOT:-/usr/local/lib/android/sdk}"
+          export ANDROID_SDK_ROOT="$HOME/.buildozer/android/platform/android-sdk"
           export ANDROID_HOME="$ANDROID_SDK_ROOT"
           mkdir -p "$ANDROID_SDK_ROOT"
           echo "ANDROID_SDK_ROOT=$ANDROID_SDK_ROOT"
-          SDKMANAGER_BIN=""
-          for candidate in \
-            "$ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager" \
-            "$ANDROID_SDK_ROOT/cmdline-tools/16.0/bin/sdkmanager" \
-            "$ANDROID_SDK_ROOT/cmdline-tools/13.0/bin/sdkmanager" \
-            "$ANDROID_SDK_ROOT/tools/bin/sdkmanager" \
-            "$(command -v sdkmanager || true)"; do
-            if [ -n "$candidate" ] && [ -x "$candidate" ]; then
-              SDKMANAGER_BIN="$candidate"
-              break
-            fi
-          done
-          if [ -z "$SDKMANAGER_BIN" ]; then
-            echo "sdkmanager was not found in expected locations" >&2
-            find "$ANDROID_SDK_ROOT" -maxdepth 4 -type f \( -name sdkmanager -o -name android \) 2>/dev/null | head -50 >&2
-            exit 1
+
+          if [ ! -x "$ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager" ]; then
+            mkdir -p "$ANDROID_SDK_ROOT/cmdline-tools"
+            curl -fsSL https://dl.google.com/android/repository/commandlinetools-linux-11076708_latest.zip -o /tmp/cmdline-tools.zip
+            rm -rf "$ANDROID_SDK_ROOT/cmdline-tools/latest"
+            unzip -q /tmp/cmdline-tools.zip -d "$ANDROID_SDK_ROOT/cmdline-tools"
+            mv "$ANDROID_SDK_ROOT/cmdline-tools/cmdline-tools" "$ANDROID_SDK_ROOT/cmdline-tools/latest"
           fi
+
+          chmod +x "$ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager" "$ANDROID_SDK_ROOT/cmdline-tools/latest/bin/android"
           mkdir -p "$ANDROID_SDK_ROOT/tools/bin"
-          ln -sf "$SDKMANAGER_BIN" "$ANDROID_SDK_ROOT/tools/bin/sdkmanager"
-          ANDROID_BIN=""
-          for candidate in \
-            "$ANDROID_SDK_ROOT/cmdline-tools/latest/bin/android" \
-            "$ANDROID_SDK_ROOT/cmdline-tools/16.0/bin/android" \
-            "$ANDROID_SDK_ROOT/cmdline-tools/13.0/bin/android" \
-            "$ANDROID_SDK_ROOT/tools/bin/android"; do
-            if [ -n "$candidate" ] && [ -x "$candidate" ]; then
-              ANDROID_BIN="$candidate"
-              break
-            fi
-          done
-          if [ -n "$ANDROID_BIN" ]; then
-            ln -sf "$ANDROID_BIN" "$ANDROID_SDK_ROOT/tools/bin/android"
-          fi
-          echo "Using sdkmanager at $SDKMANAGER_BIN"
-          yes | "$SDKMANAGER_BIN" --sdk_root="$ANDROID_SDK_ROOT" --licenses || true
-          "$SDKMANAGER_BIN" --sdk_root="$ANDROID_SDK_ROOT" "platform-tools" "platforms;android-31" "build-tools;37.0.0"
+          ln -sf "$ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager" "$ANDROID_SDK_ROOT/tools/bin/sdkmanager"
+          ln -sf "$ANDROID_SDK_ROOT/cmdline-tools/latest/bin/android" "$ANDROID_SDK_ROOT/tools/bin/android"
+
+          yes | "$ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager" --sdk_root="$ANDROID_SDK_ROOT" --licenses || true
+          "$ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager" --sdk_root="$ANDROID_SDK_ROOT" "platform-tools" "platforms;android-31" "build-tools;37.0.0"
 
       - name: Build APK
         run: |
-          export ANDROID_SDK_ROOT="${ANDROID_SDK_ROOT:-/usr/local/lib/android/sdk}"
+          export ANDROID_SDK_ROOT="$HOME/.buildozer/android/platform/android-sdk"
           export ANDROID_HOME="$ANDROID_SDK_ROOT"
           export ANDROIDSDK="$ANDROID_SDK_ROOT"
           export PATH="$ANDROID_SDK_ROOT/platform-tools:$ANDROID_SDK_ROOT/cmdline-tools/latest/bin:$ANDROID_SDK_ROOT/tools/bin:$PATH"
