@@ -119,6 +119,8 @@ jobs:
           if [ -z "$SDKMANAGER_BIN" ]; then
             SDKMANAGER_BIN="/usr/local/lib/android/sdk/cmdline-tools/latest/bin/sdkmanager"
           fi
+          mkdir -p "$ANDROID_SDK_ROOT/tools/bin"
+          ln -sf "$SDKMANAGER_BIN" "$ANDROID_SDK_ROOT/tools/bin/sdkmanager"
           yes | "$SDKMANAGER_BIN" --sdk_root="$ANDROID_SDK_ROOT" --licenses || true
           "$SDKMANAGER_BIN" --sdk_root="$ANDROID_SDK_ROOT" "platform-tools" "platforms;android-31" "build-tools;37.0.0"
 
